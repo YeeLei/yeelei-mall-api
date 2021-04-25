@@ -32,4 +32,6 @@ public interface YeeLeiMallShoppingCartItemMapper {
 
     List<YeeLeiMallShoppingCartItem> selectByUserId(@Param("userId") Long userId,
                                                     @Param("number") Integer number);
+
+    int deleteBatch(List<Long> ids);
 }

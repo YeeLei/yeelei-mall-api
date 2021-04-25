@@ -2,6 +2,7 @@ package top.yeelei.mall.model.dao;
 
 import org.apache.ibatis.annotations.Param;
 import org.springframework.stereotype.Repository;
+import top.yeelei.mall.model.pojo.StockNumDTO;
 import top.yeelei.mall.model.pojo.YeeLeiMallGoods;
 
 import java.util.List;
@@ -35,4 +36,6 @@ public interface YeeLeiMallGoodsMapper {
                                                       @Param("goodsSellStatus") int goodsSellStatus);
 
     List<YeeLeiMallGoods> selectByPrimaryKeys(List<Long> goodIds);
+
+    int updateStockNum(@Param("stockNumDTOS") List<StockNumDTO> stockNumDTOS);
 }

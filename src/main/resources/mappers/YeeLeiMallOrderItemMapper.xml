@@ -126,4 +126,16 @@
       create_time = #{createTime,jdbcType=TIMESTAMP}
     where order_item_id = #{orderItemId,jdbcType=BIGINT}
   </update>
+  <insert id="insertBatch" parameterType="top.yeelei.mall.model.pojo.YeeLeiMallOrderItem">
+    insert into tb_yeelei_mall_order_item (order_id, goods_id,
+    goods_name, goods_cover_img, selling_price,
+    goods_count)
+    values
+    <foreach collection="orderItems" item="orderItem" separator=",">
+      (#{orderItem.orderId,jdbcType=BIGINT}, #{orderItem.goodsId,jdbcType=BIGINT},
+      #{orderItem.goodsName,jdbcType=VARCHAR}, #{orderItem.goodsCoverImg,jdbcType=VARCHAR},
+      #{orderItem.sellingPrice,jdbcType=INTEGER},
+      #{orderItem.goodsCount,jdbcType=INTEGER})
+    </foreach>
+  </insert>
 </mapper>

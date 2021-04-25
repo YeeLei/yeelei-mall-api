@@ -189,19 +189,18 @@ public class MallShoppingCartServiceImpl implements MallShoppingCartService {
                 }
             }
         }
-
-        int priceTotal = 0;
         if (CollectionUtils.isEmpty(mallShoppingCartItemVOS)) {
             //无数据则抛出异常
             throw new YeeLeiMallException(ServiceResultEnum.PARAM_ERROR.getResult());
         } else {
             //计算总价
             for (MallShoppingCartItemVO mallShoppingCartItemVO : mallShoppingCartItemVOS) {
+                int priceTotal = 0;
                 priceTotal += mallShoppingCartItemVO.getGoodsCount() * mallShoppingCartItemVO.getSellingPrice();
+                if (priceTotal < 1) {
+                    throw new YeeLeiMallException("价格异常");
+                }
                 mallShoppingCartItemVO.setTotalPrice(priceTotal);
-            }
-            if (priceTotal < 1) {
-                throw new YeeLeiMallException("价格异常");
             }
         }
         return mallShoppingCartItemVOS;
