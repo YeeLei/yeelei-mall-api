@@ -27,4 +27,14 @@ public interface YeeLeiMallOrderItemMapper {
      * @return
      */
     int insertBatch(@Param("orderItems") List<YeeLeiMallOrderItem> orderItems);
+
+    List<YeeLeiMallOrderItem> selectByOrderId(Long orderId);
+
+    /**
+     * 根据订单ids获取订单项列表
+     *
+     * @param orderIds
+     * @return
+     */
+    List<YeeLeiMallOrderItem> selectByOrderIds(@Param("orderIds") List<Long> orderIds);
 }

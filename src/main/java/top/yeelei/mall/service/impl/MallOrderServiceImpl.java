@@ -1,15 +1,15 @@
 package top.yeelei.mall.service.impl;
 
+import com.github.pagehelper.PageHelper;
+import com.github.pagehelper.PageInfo;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
-import top.yeelei.mall.common.Constants;
-import top.yeelei.mall.common.ServiceResultEnum;
+import top.yeelei.mall.common.*;
 import top.yeelei.mall.controller.MallController.param.AddOrderParam;
-import top.yeelei.mall.controller.MallController.vo.MallShoppingCartItemVO;
-import top.yeelei.mall.controller.MallController.vo.MallUserAddressVO;
+import top.yeelei.mall.controller.MallController.vo.*;
 import top.yeelei.mall.exception.YeeLeiMallException;
 import top.yeelei.mall.model.dao.*;
 import top.yeelei.mall.model.pojo.*;
@@ -19,12 +19,11 @@ import top.yeelei.mall.service.MallUserAddressService;
 import top.yeelei.mall.utils.CopyListUtil;
 import top.yeelei.mall.utils.NumberUtil;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+
+import static java.util.stream.Collectors.groupingBy;
 
 @Service
 public class MallOrderServiceImpl implements MallOrderService {
@@ -47,8 +46,7 @@ public class MallOrderServiceImpl implements MallOrderService {
     @Transactional
     public String saveOrder(AddOrderParam addOrderParam, Long userId) {
         int priceTotal = 0;
-        if (addOrderParam == null || addOrderParam.getCartItemIds() == null ||
-                addOrderParam.getAddressId() == null) {
+        if (addOrderParam == null || addOrderParam.getCartItemIds() == null || addOrderParam.getAddressId() == null) {
             throw new YeeLeiMallException(ServiceResultEnum.PARAM_ERROR.getResult());
         }
         if (addOrderParam.getCartItemIds().length < 1) {
@@ -67,8 +65,8 @@ public class MallOrderServiceImpl implements MallOrderService {
             if (priceTotal < 1) {
                 throw new YeeLeiMallException(ServiceResultEnum.ORDER_PRICE_ERROR.getResult());
             }
-            //判断所属
             MallUserAddressVO address = addressService.getUserAddressById(addOrderParam.getAddressId());
+            //判断所属
             if (!address.getUserId().equals(userId)) {
                 //地址不是所属用户
                 throw new YeeLeiMallException(ServiceResultEnum.REQUEST_FORBIDEN_ERROR.getResult());
@@ -110,6 +108,7 @@ public class MallOrderServiceImpl implements MallOrderService {
                 if (shoppingCartItemMapper.deleteBatch(itemIdList) > 0) {
                     List<StockNumDTO> stockNumDTOS =
                             CopyListUtil.copyListProperties(myShoppingCartItems, StockNumDTO::new);
+                    //更新库存数量
                     if (mallGoodsMapper.updateStockNum(stockNumDTOS) < 1) {
                         //库存不足
                         throw new YeeLeiMallException(ServiceResultEnum.SHOPPING_ITEM_COUNT_ERROR.getResult());
@@ -138,7 +137,7 @@ public class MallOrderServiceImpl implements MallOrderService {
                             mallOrderItem.setOrderId(mallOrder.getOrderId());
                             mallOrderItems.add(mallOrderItem);
                         }
-                        //保存至数据库
+                        //保存订单项快照至数据库
                         if (orderItemMapper.insertBatch(mallOrderItems) > 0 && orderAddressMapper.insertSelective(orderAddress) > 0) {
                             //所有操作成功后，将订单号返回，以供Controller方法跳转到订单详情
                             return orderNo;
@@ -150,5 +149,126 @@ public class MallOrderServiceImpl implements MallOrderService {
             }
             throw new YeeLeiMallException(ServiceResultEnum.SHOPPING_ITEM_ERROR.getResult());
         }
+    }
+
+    @Override
+    public MallOrderDetailVO getOrderDetailByOrderNo(String orderNo, Long userId) {
+        YeeLeiMallOrder yeeLeiMallOrder = orderMapper.selectByOrderNo(orderNo);
+        if (yeeLeiMallOrder == null) {
+            throw new YeeLeiMallException(ServiceResultEnum.ORDER_NOT_EXIST_ERROR.getResult());
+        }
+        //判断用户所属
+        if (!yeeLeiMallOrder.getUserId().equals(userId)) {
+            //不是当前用户的订单
+            throw new YeeLeiMallException(ServiceResultEnum.REQUEST_FORBIDEN_ERROR.getResult());
+        }
+        List<YeeLeiMallOrderItem> mallOrderItemList = orderItemMapper.selectByOrderId(yeeLeiMallOrder.getOrderId());
+        //获取订单项数据
+        if (!CollectionUtils.isEmpty(mallOrderItemList)) {
+            List<MallOrderItemVO> mallOrderItemVOS = CopyListUtil.copyListProperties(mallOrderItemList, MallOrderItemVO::new);
+            //创建新的订单详情
+            MallOrderDetailVO orderDetailVO = new MallOrderDetailVO();
+            BeanUtils.copyProperties(yeeLeiMallOrder, orderDetailVO);
+            orderDetailVO.setOrderStatusString(YeeLeiMallOrderStatusEnum.getYeeLeiMallOrderStatusEnumByStatus(orderDetailVO.getOrderStatus()).getName());
+            orderDetailVO.setPayTypeString(PayTypeEnum.getPayTypeEnumByType(orderDetailVO.getPayType()).getName());
+            orderDetailVO.setMallOrderItemVOS(mallOrderItemVOS);
+            return orderDetailVO;
+        }
+        throw new YeeLeiMallException(ServiceResultEnum.ORDER_ITEM_NULL_ERROR.getResult());
+    }
+
+    @Override
+    public boolean cancelOrder(String orderNo, Long userId) {
+        YeeLeiMallOrder yeeLeiMallOrder = orderMapper.selectByOrderNo(orderNo);
+        if (yeeLeiMallOrder == null) {
+            throw new YeeLeiMallException(ServiceResultEnum.ORDER_NOT_EXIST_ERROR.getResult());
+        }
+        //判断用户所属
+        if (!yeeLeiMallOrder.getUserId().equals(userId)) {
+            //不是当前用户的订单
+            throw new YeeLeiMallException(ServiceResultEnum.REQUEST_FORBIDEN_ERROR.getResult());
+        }
+        if (orderMapper.closeOrder(Collections.singletonList(yeeLeiMallOrder.getOrderId()),
+                YeeLeiMallOrderStatusEnum.ORDER_CLOSED_BY_MALLUSER.getOrderStatus()) > 0) {
+            return true;
+        }
+        return false;
+    }
+
+    @Override
+    public PageInfo getMyOrders(Integer pageNum, Integer status, Long userId) {
+        int total = orderMapper.getTotalMallOrders(status, userId);
+        PageHelper.startPage(pageNum, Constants.ORDER_SEARCH_PAGE_LIMIT);
+        List<YeeLeiMallOrder> mallOrderList = orderMapper.findMallOrderList(status, userId);
+        List<MallOrderListVO> orderListVOS = new ArrayList<>();
+        if (total > 0) {
+            //数据转换 将实体类转成vo
+            orderListVOS = CopyListUtil.copyListProperties(mallOrderList, MallOrderListVO::new);
+            //设置订单状态中文显示值
+            for (MallOrderListVO mallOrderListVO : orderListVOS) {
+                mallOrderListVO.setOrderStatusString(YeeLeiMallOrderStatusEnum
+                        .getYeeLeiMallOrderStatusEnumByStatus(mallOrderListVO.getOrderStatus()).getName());
+            }
+            //获取所有的orderIds列表
+            List<Long> orderIds = mallOrderList.stream()
+                    .map(YeeLeiMallOrder::getOrderId).collect(Collectors.toList());
+            if (!CollectionUtils.isEmpty(orderIds)) {
+                //根据orderIds查询所有的订单项列表
+                List<YeeLeiMallOrderItem> mallOrderItemList = orderItemMapper.selectByOrderIds(orderIds);
+                Map<Long, List<YeeLeiMallOrderItem>> itemByOrderIdMap =
+                        mallOrderItemList.stream().collect(groupingBy(YeeLeiMallOrderItem::getOrderId));
+                for (MallOrderListVO orderListVO : orderListVOS) {
+                    //封装每个订单列表对象的订单项数据
+                    if (itemByOrderIdMap.containsKey(orderListVO.getOrderId())) {
+                        List<YeeLeiMallOrderItem> mallOrderItemListTemp =
+                                itemByOrderIdMap.get(orderListVO.getOrderId());
+                        //将YeeLeiMallOrderItem对象列表转换成YeeLeiMallOrderItemVO对象列表
+                        List<MallOrderItemVO> mallOrderItemVOS = CopyListUtil
+                                .copyListProperties(mallOrderItemListTemp, MallOrderItemVO::new);
+                        orderListVO.setMallOrderItemVOS(mallOrderItemVOS);
+                    }
+                }
+            }
+        }
+        PageInfo pageInfo = new PageInfo<>(mallOrderList);
+        pageInfo.setList(orderListVOS);
+        return pageInfo;
+    }
+
+    @Override
+    public boolean paySuccess(String orderNo, int payType) {
+        YeeLeiMallOrder yeeLeiMallOrder = orderMapper.selectByOrderNo(orderNo);
+        if (yeeLeiMallOrder == null) {
+            throw new YeeLeiMallException(ServiceResultEnum.ORDER_NOT_EXIST_ERROR.getResult());
+        }
+        if (yeeLeiMallOrder.getOrderStatus().intValue() != YeeLeiMallOrderStatusEnum.ORDER_PRE_PAY.getOrderStatus()) {
+            throw new YeeLeiMallException("非待支付状态下的订单无法支付");
+        }
+        yeeLeiMallOrder.setOrderStatus((byte) YeeLeiMallOrderStatusEnum.ORDER_PAID.getOrderStatus());
+        yeeLeiMallOrder.setPayType((byte) payType);
+        yeeLeiMallOrder.setPayStatus((byte) PayStatusEnum.PAY_SUCCESS.getPayStatus());
+        yeeLeiMallOrder.setPayTime(new Date());
+        yeeLeiMallOrder.setUpdateTime(new Date());
+        if (orderMapper.updateByPrimaryKeySelective(yeeLeiMallOrder) > 0) {
+            return true;
+        }
+        return false;
+    }
+
+    @Override
+    public boolean finishOrder(String orderNo, Long userId) {
+        YeeLeiMallOrder yeeLeiMallOrder = orderMapper.selectByOrderNo(orderNo);
+        if (yeeLeiMallOrder == null) {
+            throw new YeeLeiMallException(ServiceResultEnum.ORDER_NOT_EXIST_ERROR.getResult());
+        }
+        if (yeeLeiMallOrder.getPayStatus().intValue() == YeeLeiMallOrderStatusEnum.ORDER_PRE_PAY.getOrderStatus()) {
+            throw new YeeLeiMallException("待支付状态下的订单无法进行确认收货");
+        }
+        yeeLeiMallOrder.setOrderStatus((byte) YeeLeiMallOrderStatusEnum.ORDER_SUCCESS.getOrderStatus());
+        yeeLeiMallOrder.setUpdateTime(new Date());
+        if (orderMapper.updateByPrimaryKeySelective(yeeLeiMallOrder) > 0) {
+            return true;
+        }
+        return false;
     }
 }

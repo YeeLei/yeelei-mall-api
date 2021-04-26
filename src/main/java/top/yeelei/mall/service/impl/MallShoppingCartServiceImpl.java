@@ -139,7 +139,7 @@ public class MallShoppingCartServiceImpl implements MallShoppingCartService {
         List<YeeLeiMallShoppingCartItem> mallShoppingCartItems = shoppingCartItemMapper.findMyMallCartItems(userId);
         List<MallShoppingCartItemVO> shoppingCartItemVOS = getMallShoppingCartItemVOS(mallShoppingCartItemVOS, mallShoppingCartItems);
         PageInfo pageInfo = new PageInfo<>(mallShoppingCartItems);
-        pageInfo.setList(mallShoppingCartItems);
+        pageInfo.setList(shoppingCartItemVOS);
         return pageInfo;
     }
 
