@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
+import org.springframework.util.StringUtils;
 import top.yeelei.mall.common.*;
 import top.yeelei.mall.controller.MallController.param.AddOrderParam;
 import top.yeelei.mall.controller.MallController.vo.*;
@@ -268,6 +269,179 @@ public class MallOrderServiceImpl implements MallOrderService {
         yeeLeiMallOrder.setUpdateTime(new Date());
         if (orderMapper.updateByPrimaryKeySelective(yeeLeiMallOrder) > 0) {
             return true;
+        }
+        return false;
+    }
+
+    @Override
+    public PageInfo getMallOrdersPage(Integer pageNum, Integer pageSize, String orderNo, Integer orderStatus) {
+        PageHelper.startPage(pageNum, pageSize);
+        List<YeeLeiMallOrder> orderList = orderMapper.findMallOrderListForAdmin(orderNo, orderStatus);
+        PageInfo<YeeLeiMallOrder> pageInfo = new PageInfo<>(orderList);
+        return pageInfo;
+    }
+
+    @Override
+    public boolean updateOrderInfo(YeeLeiMallOrder yeeLeiMallOrder) {
+        YeeLeiMallOrder order = orderMapper.selectByPrimaryKey(yeeLeiMallOrder.getOrderId());
+        //不为空且orderStatus>=0且状态为出库之前可以修改部分信息
+        if (order != null && order.getOrderStatus() >= 0 && order.getOrderStatus() < 3) {
+            order.setTotalPrice(yeeLeiMallOrder.getTotalPrice());
+            order.setUpdateTime(new Date());
+            if (orderMapper.updateByPrimaryKeySelective(order) > 0) {
+                return true;
+            }
+        } else {
+            throw new YeeLeiMallException(ServiceResultEnum.DATA_NOT_EXIST.getResult());
+        }
+        return false;
+    }
+
+    @Override
+    public List<MallOrderItemVO> getOrderItems(Long orderId) {
+        if (orderId == null || orderId < 1) {
+            throw new YeeLeiMallException(ServiceResultEnum.PARAM_ERROR.getResult());
+        }
+        YeeLeiMallOrder yeeLeiMallOrder = orderMapper.selectByPrimaryKey(orderId);
+        if (yeeLeiMallOrder == null) {
+            throw new YeeLeiMallException(ServiceResultEnum.DATA_NOT_EXIST.getResult());
+        }
+        List<YeeLeiMallOrderItem> mallOrderItems = orderItemMapper.selectByOrderId(orderId);
+        //获取订单项数据
+        if (!CollectionUtils.isEmpty(mallOrderItems)) {
+            List<MallOrderItemVO> orderItemVOS =
+                    CopyListUtil.copyListProperties(mallOrderItems, MallOrderItemVO::new);
+            return orderItemVOS;
+        }
+        return null;
+    }
+
+    @Override
+    public MallOrderDetailVO getOrderDetailByOrderId(Long orderId) {
+        YeeLeiMallOrder yeeLeiMallOrder = orderMapper.selectByPrimaryKey(orderId);
+        if (yeeLeiMallOrder == null) {
+            throw new YeeLeiMallException(ServiceResultEnum.DATA_NOT_EXIST.getResult());
+        }
+        List<YeeLeiMallOrderItem> mallOrderItems = orderItemMapper.selectByOrderId(yeeLeiMallOrder.getOrderId());
+
+        if (CollectionUtils.isEmpty(mallOrderItems)) {
+            throw new YeeLeiMallException(ServiceResultEnum.ORDER_ITEM_NULL_ERROR.getResult());
+        }
+        //获取订单项数据
+        List<MallOrderItemVO> orderItemVOS =
+                CopyListUtil.copyListProperties(mallOrderItems, MallOrderItemVO::new);
+        MallOrderDetailVO orderDetailVO = new MallOrderDetailVO();
+        BeanUtils.copyProperties(yeeLeiMallOrder, orderDetailVO);
+        orderDetailVO.setMallOrderItemVOS(orderItemVOS);
+        orderDetailVO.setOrderStatusString(YeeLeiMallOrderStatusEnum
+                .getYeeLeiMallOrderStatusEnumByStatus(orderDetailVO.getOrderStatus()).getName());
+        orderDetailVO.setPayTypeString(PayTypeEnum.getPayTypeEnumByType(orderDetailVO.getPayType()).getName());
+        return orderDetailVO;
+    }
+
+    @Override
+    @Transactional
+    public boolean checkDone(Long[] ids) {
+        //查询所有的订单 判断状态 修改状态和更新时间
+        List<YeeLeiMallOrder> orders = orderMapper.selectByPrimaryKeys(Arrays.asList(ids));
+        String errorOrderNos = "";
+        if (!CollectionUtils.isEmpty(orders)) {
+            for (YeeLeiMallOrder yeeLeiMallOrder : orders) {
+                if (yeeLeiMallOrder.getIsDeleted() == 1) {
+                    errorOrderNos += yeeLeiMallOrder.getOrderNo() + " ";
+                    continue;
+                }
+                if (yeeLeiMallOrder.getOrderStatus() != 1) {
+                    errorOrderNos += yeeLeiMallOrder.getOrderNo() + " ";
+                }
+            }
+            if (StringUtils.isEmpty(errorOrderNos)) {
+                //订单状态正常 可以执行配货完成操作 修改订单状态和更新时间
+                if (orderMapper.checkDone(Arrays.asList(ids)) > 0) {
+                    return true;
+                } else {
+                    throw new YeeLeiMallException(ServiceResultEnum.DB_ERROR.getResult());
+                }
+
+            } else {
+                //订单此时不可执行出库操作
+                if (errorOrderNos.length() > 0 && errorOrderNos.length() < 100) {
+                    throw new YeeLeiMallException(errorOrderNos + "订单的状态不是支付成功无法执行出库操作");
+                } else {
+                    throw new YeeLeiMallException("你选择了太多状态不是支付成功的订单，无法执行配货完成操作");
+                }
+            }
+        }
+        return false;
+    }
+
+    @Override
+    public boolean checkOut(Long[] ids) {
+        //查询所有的订单 判断状态 修改状态和更新时间
+        List<YeeLeiMallOrder> orders = orderMapper.selectByPrimaryKeys(Arrays.asList(ids));
+        String errorOrderNos = "";
+        if (!CollectionUtils.isEmpty(orders)) {
+            for (YeeLeiMallOrder yeeLeiMallOrder : orders) {
+                if (yeeLeiMallOrder.getIsDeleted() == 1) {
+                    errorOrderNos += yeeLeiMallOrder.getOrderNo() + " ";
+                    continue;
+                }
+                if (yeeLeiMallOrder.getOrderStatus() != 1 && yeeLeiMallOrder.getOrderStatus() != 2) {
+                    errorOrderNos += yeeLeiMallOrder.getOrderNo() + " ";
+                }
+            }
+            if (StringUtils.isEmpty(errorOrderNos)) {
+                //订单状态正常 可以执行配货完成操作 修改订单状态和更新时间
+                if (orderMapper.checkOut(Arrays.asList(ids)) > 0) {
+                    return true;
+                } else {
+                    throw new YeeLeiMallException(ServiceResultEnum.DB_ERROR.getResult());
+                }
+            } else {
+                //订单此时不可执行出库操作
+                if (errorOrderNos.length() > 0 && errorOrderNos.length() < 100) {
+                    throw new YeeLeiMallException(errorOrderNos + "订单的状态不是支付成功或配货完成无法执行出库操作");
+                } else {
+                    throw new YeeLeiMallException("你选择了太多状态不是支付成功或配货完成的订单，无法执行出库操作");
+                }
+            }
+        }
+        return false;
+    }
+
+    @Override
+    public boolean closeOrder(Long[] ids) {
+        //查询所有的订单 判断状态 修改状态和更新时间
+        List<YeeLeiMallOrder> orders = orderMapper.selectByPrimaryKeys(Arrays.asList(ids));
+        String errorOrderNos = "";
+        if (!CollectionUtils.isEmpty(orders)) {
+            for (YeeLeiMallOrder order : orders) {
+                // isDeleted=1 一定为已关闭订单
+                if (order.getIsDeleted() == -1) {
+                    errorOrderNos += order.getOrderNo() + " ";
+                    continue;
+                }
+                //已关闭或者已完成无法关闭订单
+                if (order.getOrderStatus() == 4 || order.getOrderStatus() < 0) {
+                    errorOrderNos += order.getOrderNo() + " ";
+                }
+            }
+            if (StringUtils.isEmpty(errorOrderNos)) {
+                //订单状态正常 可以执行关闭操作 修改订单状态和更新时间
+                if (orderMapper.closeOrder(Arrays.asList(ids), YeeLeiMallOrderStatusEnum
+                        .ORDER_CLOSED_BY_JUDGE.getOrderStatus()) > 0) {
+                    return true;
+                } else {
+                    throw new YeeLeiMallException(ServiceResultEnum.DB_ERROR.getResult());
+                }
+            } else {
+                //订单此时不可执行关闭操作
+                if (errorOrderNos.length() > 0 && errorOrderNos.length() < 100) {
+                    throw new YeeLeiMallException(errorOrderNos + "订单不能执行关闭操作");
+                } else {
+                    throw new YeeLeiMallException("你选择的订单不能执行关闭操作");
+                }
+            }
         }
         return false;
     }

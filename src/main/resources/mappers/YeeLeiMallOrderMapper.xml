@@ -215,4 +215,46 @@
         </where>
         order by create_time desc
     </select>
+    <select id="findMallOrderListForAdmin" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List"/>
+        from tb_yeelei_mall_order
+        <where>
+            <if test="orderNo!=null and orderNo!=''">
+                and order_no = #{orderNo}
+            </if>
+            <if test="orderStatus!=null">
+                and order_status = #{orderStatus}
+            </if>
+        </where>
+        order by create_time desc
+    </select>
+    <select id="selectByPrimaryKeys" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List"/>
+        from tb_yeelei_mall_order
+        where order_id in
+        <foreach collection="orderIds" item="id" index="index"
+                 open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </select>
+    <update id="checkDone">
+        update tb_yeelei_mall_order
+        set order_status = 2,update_time = now()
+        where order_id in
+        <foreach collection="orderIds" item="id" index="index"
+                 open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </update>
+    <update id="checkOut">
+        update tb_yeelei_mall_order
+        set order_status = 3,update_time = now()
+        where order_id in
+        <foreach collection="orderIds" item="id" index="index"
+                 open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </update>
 </mapper>

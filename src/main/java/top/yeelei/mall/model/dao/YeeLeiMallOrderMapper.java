@@ -22,9 +22,17 @@ public interface YeeLeiMallOrderMapper {
 
     YeeLeiMallOrder selectByOrderNo(String orderNo);
 
-    int closeOrder(@Param("orderIds") List<Long> orderIds,@Param("orderStatus") int orderStatus);
+    int closeOrder(@Param("orderIds") List<Long> orderIds, @Param("orderStatus") int orderStatus);
 
-    int getTotalMallOrders(@Param("orderStatus") Integer orderStatus,@Param("userId") Long userId);
+    int getTotalMallOrders(@Param("orderStatus") Integer orderStatus, @Param("userId") Long userId);
 
     List<YeeLeiMallOrder> findMallOrderList(@Param("orderStatus") Integer orderStatus, @Param("userId") Long userId);
+
+    List<YeeLeiMallOrder> findMallOrderListForAdmin(@Param("orderNo") String orderNo, @Param("orderStatus") Integer orderStatus);
+
+    List<YeeLeiMallOrder> selectByPrimaryKeys(@Param("orderIds") List<Long> orderIds);
+
+    int checkDone(@Param("orderIds") List<Long> orderIds);
+
+    int checkOut(@Param("orderIds") List<Long> orderIds);
 }
