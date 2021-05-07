@@ -18,4 +18,6 @@ public interface AdminUserMapper {
     int updateByPrimaryKey(AdminUser record);
 
     AdminUser selectByLoginNameAndPassword(String userName, String passwordMd5);
+
+    AdminUser selectByLoginName(String loginUserName);
 }

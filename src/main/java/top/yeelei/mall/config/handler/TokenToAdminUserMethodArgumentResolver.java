@@ -7,13 +7,18 @@ import org.springframework.web.bind.support.WebDataBinderFactory;
 import org.springframework.web.context.request.NativeWebRequest;
 import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.method.support.ModelAndViewContainer;
+import top.yeelei.mall.common.ApiRestResponse;
 import top.yeelei.mall.common.Constants;
 import top.yeelei.mall.common.ServiceResultEnum;
+import top.yeelei.mall.exception.MallAdminException;
 import top.yeelei.mall.exception.YeeLeiMallException;
 import top.yeelei.mall.config.annotation.TokenToAdminUser;
 import top.yeelei.mall.model.dao.AdminUserTokenMapper;
 import top.yeelei.mall.model.pojo.AdminUserToken;
 
+/**
+ * 自定义方法参数解析器
+ */
 @Component
 public class TokenToAdminUserMethodArgumentResolver implements HandlerMethodArgumentResolver {
 
@@ -38,9 +43,11 @@ public class TokenToAdminUserMethodArgumentResolver implements HandlerMethodArgu
             if (null != token && !"".equals(token) && token.length() == Constants.TOKEN_LENGTH) {
                 AdminUserToken adminUserToken = adminUserTokenMapper.selectByToken(token);
                 if (adminUserToken == null) {
-                    YeeLeiMallException.fail(ServiceResultEnum.ADMIN_NOT_LOGIN_ERROR.getResult());
+//                    YeeLeiMallException.fail(ServiceResultEnum.ADMIN_NOT_LOGIN_ERROR.getResult());
+                    throw new MallAdminException(419,ServiceResultEnum.ADMIN_NOT_LOGIN_ERROR.getResult());
                 } else if (adminUserToken.getExpireTime().getTime() <= System.currentTimeMillis()) {
-                    YeeLeiMallException.fail(ServiceResultEnum.ADMIN_TOKEN_EXPIRE_ERROR.getResult());
+//                    YeeLeiMallException.fail(ServiceResultEnum.ADMIN_TOKEN_EXPIRE_ERROR.getResult());
+                    throw new MallAdminException(419,ServiceResultEnum.ADMIN_NOT_LOGIN_ERROR.getResult());
                 }
                 return adminUserToken;
             } else {

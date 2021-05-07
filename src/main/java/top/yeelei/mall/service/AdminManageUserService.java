@@ -7,11 +7,11 @@ public interface AdminManageUserService {
     /**
      * 管理员登录
      *
-     * @param userName
-     * @param passwordMd5
+     * @param username
+     * @param password
      * @return
      */
-    String login(String userName, String passwordMd5);
+    String login(String username, String password);
 
     /**
      * 获取管理员用户信息

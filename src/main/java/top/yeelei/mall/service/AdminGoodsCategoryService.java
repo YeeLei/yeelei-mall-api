@@ -1,11 +1,10 @@
 package top.yeelei.mall.service;
 
 import com.github.pagehelper.PageInfo;
-import top.yeelei.mall.controller.AdminController.param.AddGoodsCategoryParam;
-import top.yeelei.mall.controller.AdminController.param.BatchIdParam;
-import top.yeelei.mall.controller.AdminController.param.UpdateGoodsCategoryParam;
-import top.yeelei.mall.controller.MallController.vo.MallIndexCategoryVO;
-import top.yeelei.mall.model.pojo.AdminUserToken;
+import top.yeelei.mall.controller.admin.param.AddGoodsCategoryParam;
+import top.yeelei.mall.controller.admin.param.BatchIdParam;
+import top.yeelei.mall.controller.admin.param.UpdateGoodsCategoryParam;
+import top.yeelei.mall.controller.mall.vo.MallIndexCategoryVO;
 import top.yeelei.mall.model.pojo.GoodsCategory;
 
 import java.util.List;

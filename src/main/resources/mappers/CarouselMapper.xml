@@ -148,9 +148,10 @@
         </foreach>
     </update>
     <select id="selectList" resultMap="BaseResultMap">
-        select
-        <include refid="Base_Column_List" />
-        from tb_yeelei_mall_carousel
+      select
+      <include refid="Base_Column_List"/>
+      from tb_yeelei_mall_carousel
+      where is_deleted = 0
     </select>
     <select id="selectCarouselByNum" resultMap="BaseResultMap">
         select <include refid="Base_Column_List" />

@@ -7,7 +7,7 @@ import org.springframework.stereotype.Service;
 import top.yeelei.mall.common.Constants;
 import top.yeelei.mall.common.ServiceResultEnum;
 import top.yeelei.mall.exception.YeeLeiMallException;
-import top.yeelei.mall.controller.MallController.param.MallUserUpdateParam;
+import top.yeelei.mall.controller.mall.param.MallUserUpdateParam;
 import top.yeelei.mall.model.dao.MallUserMapper;
 import top.yeelei.mall.model.dao.MallUserTokenMapper;
 import top.yeelei.mall.model.pojo.MallUser;
@@ -73,8 +73,8 @@ public class MallUserServiceImpl implements MallUserService {
             MallUserToken mallUserToken = mallUserTokenMapper.selectByPrimaryKey(user.getUserId());
             //当前时间
             Date now = new Date();
-            //过期时间
-            Date expireTime = new Date(now.getTime() + 2 * 24 * 3600 * 1000);//过期时间 48 小时
+            //设置过期时间48 小时
+            Date expireTime = new Date(now.getTime() + 2 * 24 * 3600 * 1000);
             if (mallUserToken == null) {
                 mallUserToken = new MallUserToken();
                 mallUserToken.setUserId(user.getUserId());

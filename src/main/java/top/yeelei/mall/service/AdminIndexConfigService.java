@@ -1,10 +1,10 @@
 package top.yeelei.mall.service;
 
 import com.github.pagehelper.PageInfo;
-import top.yeelei.mall.controller.AdminController.param.AddIndexConfigParam;
-import top.yeelei.mall.controller.AdminController.param.BatchIdParam;
-import top.yeelei.mall.controller.AdminController.param.UpdateIndexConfigParam;
-import top.yeelei.mall.controller.MallController.vo.MallIndexConfigGoodsVO;
+import top.yeelei.mall.controller.admin.param.AddIndexConfigParam;
+import top.yeelei.mall.controller.admin.param.BatchIdParam;
+import top.yeelei.mall.controller.admin.param.UpdateIndexConfigParam;
+import top.yeelei.mall.controller.mall.vo.MallIndexConfigGoodsVO;
 import top.yeelei.mall.model.pojo.IndexConfig;
 
 import java.util.List;

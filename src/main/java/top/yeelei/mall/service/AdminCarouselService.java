@@ -1,11 +1,9 @@
 package top.yeelei.mall.service;
 
 import com.github.pagehelper.PageInfo;
-import top.yeelei.mall.controller.AdminController.param.AddCarouselParam;
-import top.yeelei.mall.controller.AdminController.param.BatchIdParam;
-import top.yeelei.mall.controller.AdminController.param.UpdateCarouselParam;
-import top.yeelei.mall.controller.MallController.vo.MallIndexCarouselVO;
-import top.yeelei.mall.model.pojo.AdminUserToken;
+import top.yeelei.mall.controller.admin.param.AddCarouselParam;
+import top.yeelei.mall.controller.admin.param.UpdateCarouselParam;
+import top.yeelei.mall.controller.mall.vo.MallIndexCarouselVO;
 import top.yeelei.mall.model.pojo.Carousel;
 
 import java.util.List;

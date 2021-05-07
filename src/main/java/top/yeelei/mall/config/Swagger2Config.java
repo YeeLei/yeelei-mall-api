@@ -27,19 +27,18 @@ public class Swagger2Config {
 
     @Bean
     public Docket api() {
-
         ParameterBuilder tokenParam = new ParameterBuilder();
         List<Parameter> swaggerParams = new ArrayList<Parameter>();
         tokenParam.name("token").description("用户认证信息")
                 .modelRef(new ModelRef("string")).parameterType("header")
                 .required(false).build(); //header中的ticket参数非必填，传空也可以
-        swaggerParams.add(tokenParam.build());    //根据每个方法名也知道当前方法在设置什么参数
+        swaggerParams.add(tokenParam.build()); //根据每个方法名也知道当前方法在设置什么参数
 
         return new Docket(DocumentationType.SWAGGER_2)
                 .apiInfo(apiInfo())
                 .ignoredParameterTypes(MallUser.class, AdminUserToken.class)
                 .select()
-                .apis(RequestHandlerSelectors.basePackage("top.yeelei.mall.controller"))// 修改为自己的 controller 包路径
+                .apis(RequestHandlerSelectors.basePackage("top.yeelei.mall.controller"))
                 .paths(PathSelectors.any())
                 .build()
                 .globalOperationParameters(swaggerParams);

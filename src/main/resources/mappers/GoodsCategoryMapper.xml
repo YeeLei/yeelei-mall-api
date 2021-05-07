@@ -176,6 +176,7 @@
             <if test="parentId!=null || parentId!=''">
                 and parent_id = #{parentId}
             </if>
+            and is_deleted = 0
         </where>
     </select>
     <select id="selectByLevelAndParentIdsAndNumber" resultMap="BaseResultMap">

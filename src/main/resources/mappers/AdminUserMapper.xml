@@ -96,4 +96,9 @@
     from tb_yeelei_mall_admin_user
     where login_user_name = #{userName} and login_password = #{passwordMd5}
   </select>
+  <select id="selectByLoginName" resultMap="BaseResultMap">
+    select <include refid="Base_Column_List"/>
+    from tb_yeelei_mall_admin_user
+    where login_user_name = #{loginUserName}
+  </select>
 </mapper>

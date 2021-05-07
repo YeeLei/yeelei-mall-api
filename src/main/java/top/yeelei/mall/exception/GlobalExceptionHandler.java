@@ -36,6 +36,12 @@ public class GlobalExceptionHandler {
         return ApiRestResponse.genFailResult(e.getMessage());
     }
 
+    @ExceptionHandler(MallAdminException.class)
+    @ResponseBody
+    public Object handleMallAdminException(MallAdminException e) {
+        logger.error("MallAdminException: ", e);
+        return ApiRestResponse.genErrorResult(e.getCode(),e.getMessage());
+    }
     //拦截由@valid报出的异常MethodArgumentNotValidException
     @ExceptionHandler(MethodArgumentNotValidException.class)
     @ResponseBody

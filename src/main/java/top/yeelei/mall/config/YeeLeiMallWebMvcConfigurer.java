@@ -15,7 +15,6 @@ import java.util.List;
 @Configuration
 public class YeeLeiMallWebMvcConfigurer implements WebMvcConfigurer {
 
-
     @Autowired
     private TokenToMallUserMethodArgumentResolver tokenToMallUserMethodArgumentResolver;
     @Autowired
@@ -31,6 +30,11 @@ public class YeeLeiMallWebMvcConfigurer implements WebMvcConfigurer {
         argumentResolvers.add(tokenToAdminUserMethodArgumentResolver);
     }
 
+    /**
+     * 添加静态资源映射
+     *
+     * @param registry
+     */
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
         registry.addResourceHandler("/upload/**").addResourceLocations("file:" + Constants.FILE_UPLOAD_DIC);

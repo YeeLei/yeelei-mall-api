@@ -7,29 +7,33 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
-import top.yeelei.mall.common.ApiRestResponse;
 import top.yeelei.mall.common.Constants;
 import top.yeelei.mall.common.ServiceResultEnum;
-import top.yeelei.mall.controller.AdminController.param.AddGoodsCategoryParam;
-import top.yeelei.mall.controller.AdminController.param.AddGoodsParam;
-import top.yeelei.mall.controller.AdminController.param.BatchIdParam;
-import top.yeelei.mall.controller.AdminController.param.UpdateGoodsParam;
-import top.yeelei.mall.controller.MallController.vo.MallGoodsDetailVO;
-import top.yeelei.mall.controller.MallController.vo.MallSearchGoodsVO;
+import top.yeelei.mall.controller.admin.param.AddGoodsParam;
+import top.yeelei.mall.controller.admin.param.BatchIdParam;
+import top.yeelei.mall.controller.admin.param.UpdateGoodsParam;
+import top.yeelei.mall.controller.mall.vo.MallGoodsDetailVO;
+import top.yeelei.mall.controller.mall.vo.MallSearchGoodsVO;
 import top.yeelei.mall.exception.YeeLeiMallException;
+import top.yeelei.mall.model.dao.GoodsCategoryMapper;
 import top.yeelei.mall.model.dao.YeeLeiMallGoodsMapper;
 import top.yeelei.mall.model.pojo.AdminUserToken;
+import top.yeelei.mall.model.pojo.GoodsCategory;
 import top.yeelei.mall.model.pojo.YeeLeiMallGoods;
 import top.yeelei.mall.service.AdminGoodsService;
 import top.yeelei.mall.utils.CopyListUtil;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Repository
 public class AdminGoodsServiceImpl implements AdminGoodsService {
     @Autowired
     private YeeLeiMallGoodsMapper goodsMapper;
+    @Autowired
+    private GoodsCategoryMapper categoryMapper;
 
     @Override
     public boolean add(AddGoodsParam addGoodsParam, Long adminUserId) {
@@ -60,12 +64,29 @@ public class AdminGoodsServiceImpl implements AdminGoodsService {
     }
 
     @Override
-    public YeeLeiMallGoods getGoodsInfo(Long goodsId) {
-        YeeLeiMallGoods oldGoods = goodsMapper.selectByPrimaryKey(goodsId);
-        if (oldGoods == null) {
+    public Map getGoodsInfo(Long goodsId) {
+        YeeLeiMallGoods goods = goodsMapper.selectByPrimaryKey(goodsId);
+        if (goods == null) {
             throw new YeeLeiMallException(ServiceResultEnum.GOODS_NOT_EXIST.getResult());
         }
-        return oldGoods;
+        Map goodsInfo = new HashMap(8);
+        goodsInfo.put("goods", goods);
+        GoodsCategory thirdCategory;
+        GoodsCategory secondCategory;
+        GoodsCategory firstCategory;
+        thirdCategory = categoryMapper.selectByPrimaryKey(goods.getGoodsCategoryId());
+        if (thirdCategory !=null) {
+            goodsInfo.put("thirdCategory", thirdCategory);
+            secondCategory = categoryMapper.selectByPrimaryKey(thirdCategory.getParentId());
+            if (secondCategory != null) {
+                goodsInfo.put("secondCategory", secondCategory);
+                firstCategory = categoryMapper.selectByPrimaryKey(secondCategory.getParentId());
+                if (firstCategory != null) {
+                    goodsInfo.put("firstCategory", firstCategory);
+                }
+            }
+        }
+        return goodsInfo;
     }
 
     @Override
@@ -81,11 +102,9 @@ public class AdminGoodsServiceImpl implements AdminGoodsService {
 
     @Override
     public PageInfo listGoodsForAdmin(Integer pageNum, Integer pageSize, String goodsName, Integer goodsSellStatus) {
-        if (goodsSellStatus != Constants.SELL_STATUS_UP && goodsSellStatus != Constants.SELL_STATUS_DOWN) {
-            throw new YeeLeiMallException(ServiceResultEnum.SELL_STATUS_ERROR.getResult());
-        }
         PageHelper.startPage(pageNum, pageSize, "goods_id desc");
         List<YeeLeiMallGoods> goodsList = goodsMapper.listGoodsForAdmin(goodsName, goodsSellStatus);
+        System.out.println(goodsList);
         PageInfo<YeeLeiMallGoods> pageInfo = new PageInfo<>(goodsList);
         return pageInfo;
     }

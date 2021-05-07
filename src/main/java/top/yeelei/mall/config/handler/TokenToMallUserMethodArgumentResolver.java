@@ -19,6 +19,9 @@ import top.yeelei.mall.model.pojo.MallUserToken;
 import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 
+/**
+ * 自定义方法参数解析器
+ */
 @Component
 public class TokenToMallUserMethodArgumentResolver implements HandlerMethodArgumentResolver {
 

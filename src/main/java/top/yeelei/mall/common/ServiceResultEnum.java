@@ -49,6 +49,8 @@ public enum ServiceResultEnum {
 
     ADMIN_NOT_LOGIN_ERROR("管理员未登录！"),
 
+    ADMIN_LOGIN_USER_NAME_IS_EXIST("管理员登录名称已存在!"),
+
     TOKEN_EXPIRE_ERROR("无效认证！请重新登录！"),
 
     ADMIN_TOKEN_EXPIRE_ERROR("管理员登录过期！请重新登录！"),

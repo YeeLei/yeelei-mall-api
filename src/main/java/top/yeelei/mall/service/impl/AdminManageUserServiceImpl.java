@@ -25,16 +25,16 @@ public class AdminManageUserServiceImpl implements AdminManageUserService {
     private AdminUserTokenMapper adminUserTokenMapper;
 
     @Override
-    public String login(String userName, String passwordMd5) {
+    public String login(String username, String password) {
         //先得到md5加密后的密码
         String md5 = null;
         try {
-            md5 = MD5Util.getMD5Str(passwordMd5);
+            md5 = MD5Util.getMD5Str(password);
         } catch (NoSuchAlgorithmException e) {
             e.printStackTrace();
         }
         //根据用户名和加密后的密码查询数据库
-        AdminUser adminUser = adminUserMapper.selectByLoginNameAndPassword(userName, md5);
+        AdminUser adminUser = adminUserMapper.selectByLoginNameAndPassword(username, md5);
         if (adminUser != null) {
             //登录后即执行修改token的操作
             String token = getNewToken(System.currentTimeMillis() + "", adminUser.getAdminUserId());
@@ -72,7 +72,7 @@ public class AdminManageUserServiceImpl implements AdminManageUserService {
     public AdminUser getUserDetailById(Long adminUserId) {
         AdminUser adminUser = adminUserMapper.selectByPrimaryKey(adminUserId);
         if (adminUser == null) {
-            YeeLeiMallException.fail(ServiceResultEnum.ADMIN_NOT_LOGIN_ERROR.getResult());
+            throw new YeeLeiMallException(ServiceResultEnum.ADMIN_NOT_LOGIN_ERROR.getResult());
         }
         return adminUser;
     }
@@ -81,7 +81,12 @@ public class AdminManageUserServiceImpl implements AdminManageUserService {
     public boolean updateName(Long adminUserId, String loginUserName, String nickName) {
         AdminUser adminUser = adminUserMapper.selectByPrimaryKey(adminUserId);
         if (adminUser == null) {
-            YeeLeiMallException.fail(ServiceResultEnum.ADMIN_NOT_LOGIN_ERROR.getResult());
+            throw new YeeLeiMallException(ServiceResultEnum.ADMIN_NOT_LOGIN_ERROR.getResult());
+        }
+        AdminUser user = adminUserMapper.selectByLoginName(loginUserName);
+        if (user != null && user.getLoginUserName().equals(loginUserName)) {
+            //存在该用户名
+            throw new YeeLeiMallException(ServiceResultEnum.ADMIN_LOGIN_USER_NAME_IS_EXIST.getResult());
         }
         //设置新名称并修改
         adminUser.setLoginUserName(loginUserName);
@@ -107,8 +112,8 @@ public class AdminManageUserServiceImpl implements AdminManageUserService {
                             adminUserTokenMapper.deleteByPrimaryKey(adminUser.getAdminUserId()) > 0) {
                         return true;
                     }
-                }else {
-                    YeeLeiMallException.fail(ServiceResultEnum.ADMIN_PWD_NOT_ORIGNALPWD.getResult());
+                } else {
+                    throw new YeeLeiMallException(ServiceResultEnum.ADMIN_PWD_NOT_ORIGNALPWD.getResult());
                 }
             } catch (NoSuchAlgorithmException e) {
                 return false;
@@ -119,7 +124,7 @@ public class AdminManageUserServiceImpl implements AdminManageUserService {
 
     @Override
     public boolean logout(Long adminUserId) {
-        return adminUserTokenMapper.deleteByPrimaryKey(adminUserId) >0;
+        return adminUserTokenMapper.deleteByPrimaryKey(adminUserId) > 0;
     }
 
     /**

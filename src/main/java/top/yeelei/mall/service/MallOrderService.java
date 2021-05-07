@@ -1,9 +1,9 @@
 package top.yeelei.mall.service;
 
 import com.github.pagehelper.PageInfo;
-import top.yeelei.mall.controller.MallController.param.AddOrderParam;
-import top.yeelei.mall.controller.MallController.vo.MallOrderDetailVO;
-import top.yeelei.mall.controller.MallController.vo.MallOrderItemVO;
+import top.yeelei.mall.controller.mall.param.AddOrderParam;
+import top.yeelei.mall.controller.mall.vo.MallOrderDetailVO;
+import top.yeelei.mall.controller.mall.vo.MallOrderItemVO;
 import top.yeelei.mall.model.pojo.YeeLeiMallOrder;
 
 import java.util.List;

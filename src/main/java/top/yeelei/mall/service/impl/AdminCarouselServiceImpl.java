@@ -2,13 +2,12 @@ package top.yeelei.mall.service.impl;
 
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
-import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
-import top.yeelei.mall.controller.AdminController.param.AddCarouselParam;
-import top.yeelei.mall.controller.AdminController.param.UpdateCarouselParam;
-import top.yeelei.mall.controller.MallController.vo.MallIndexCarouselVO;
+import top.yeelei.mall.controller.admin.param.AddCarouselParam;
+import top.yeelei.mall.controller.admin.param.UpdateCarouselParam;
+import top.yeelei.mall.controller.mall.vo.MallIndexCarouselVO;
 import top.yeelei.mall.model.dao.AdminUserMapper;
 import top.yeelei.mall.model.dao.CarouselMapper;
 import top.yeelei.mall.model.pojo.AdminUser;

@@ -1,7 +1,7 @@
 package top.yeelei.mall.service;
 
 import com.github.pagehelper.PageInfo;
-import top.yeelei.mall.controller.MallController.param.MallUserUpdateParam;
+import top.yeelei.mall.controller.mall.param.MallUserUpdateParam;
 
 public interface MallUserService {
     /**

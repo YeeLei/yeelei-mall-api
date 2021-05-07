@@ -1,8 +1,8 @@
 package top.yeelei.mall.service;
 
-import top.yeelei.mall.controller.MallController.param.AddMallUserAddressParam;
-import top.yeelei.mall.controller.MallController.param.UpdateMallUserAddressParam;
-import top.yeelei.mall.controller.MallController.vo.MallUserAddressVO;
+import top.yeelei.mall.controller.mall.param.AddMallUserAddressParam;
+import top.yeelei.mall.controller.mall.param.UpdateMallUserAddressParam;
+import top.yeelei.mall.controller.mall.vo.MallUserAddressVO;
 import top.yeelei.mall.model.pojo.MallUserAddress;
 
 import java.util.List;

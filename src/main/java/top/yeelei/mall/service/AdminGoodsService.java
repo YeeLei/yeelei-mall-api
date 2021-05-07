@@ -1,13 +1,14 @@
 package top.yeelei.mall.service;
 
 import com.github.pagehelper.PageInfo;
-import top.yeelei.mall.controller.AdminController.param.AddGoodsCategoryParam;
-import top.yeelei.mall.controller.AdminController.param.AddGoodsParam;
-import top.yeelei.mall.controller.AdminController.param.BatchIdParam;
-import top.yeelei.mall.controller.AdminController.param.UpdateGoodsParam;
-import top.yeelei.mall.controller.MallController.vo.MallGoodsDetailVO;
+import top.yeelei.mall.controller.admin.param.AddGoodsParam;
+import top.yeelei.mall.controller.admin.param.BatchIdParam;
+import top.yeelei.mall.controller.admin.param.UpdateGoodsParam;
+import top.yeelei.mall.controller.mall.vo.MallGoodsDetailVO;
 import top.yeelei.mall.model.pojo.AdminUserToken;
 import top.yeelei.mall.model.pojo.YeeLeiMallGoods;
+
+import java.util.Map;
 
 public interface AdminGoodsService {
     /**
@@ -31,7 +32,7 @@ public interface AdminGoodsService {
      * @param goodsId
      * @return
      */
-    YeeLeiMallGoods getGoodsInfo(Long goodsId);
+    Map getGoodsInfo(Long goodsId);
 
     /**
      * 批量上下架商品

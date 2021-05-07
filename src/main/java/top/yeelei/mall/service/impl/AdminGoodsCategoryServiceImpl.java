@@ -10,12 +10,12 @@ import org.springframework.util.StringUtils;
 import top.yeelei.mall.common.Constants;
 import top.yeelei.mall.common.ServiceResultEnum;
 import top.yeelei.mall.common.YeeLeiMallCategoryLevelEnum;
-import top.yeelei.mall.controller.AdminController.param.AddGoodsCategoryParam;
-import top.yeelei.mall.controller.AdminController.param.BatchIdParam;
-import top.yeelei.mall.controller.AdminController.param.UpdateGoodsCategoryParam;
-import top.yeelei.mall.controller.MallController.vo.MallIndexCategoryVO;
-import top.yeelei.mall.controller.MallController.vo.SecondLevelCategoryVO;
-import top.yeelei.mall.controller.MallController.vo.ThirdLevelCategoryVO;
+import top.yeelei.mall.controller.admin.param.AddGoodsCategoryParam;
+import top.yeelei.mall.controller.admin.param.BatchIdParam;
+import top.yeelei.mall.controller.admin.param.UpdateGoodsCategoryParam;
+import top.yeelei.mall.controller.mall.vo.MallIndexCategoryVO;
+import top.yeelei.mall.controller.mall.vo.SecondLevelCategoryVO;
+import top.yeelei.mall.controller.mall.vo.ThirdLevelCategoryVO;
 import top.yeelei.mall.exception.YeeLeiMallException;
 import top.yeelei.mall.model.dao.AdminUserMapper;
 import top.yeelei.mall.model.dao.GoodsCategoryMapper;
@@ -84,7 +84,6 @@ public class AdminGoodsCategoryServiceImpl implements AdminGoodsCategoryService 
                 newGoodsCategory.setCategoryLevel(updateGoodsCategoryParam.getCategoryLevel());
                 newGoodsCategory.setCategoryName(updateGoodsCategoryParam.getCategoryName());
                 newGoodsCategory.setCategoryRank(updateGoodsCategoryParam.getCategoryRank());
-                newGoodsCategory.setParentId(updateGoodsCategoryParam.getParentId());
                 long userId = adminUser.getAdminUserId();
                 newGoodsCategory.setUpdateUser((int) userId);
                 //插入
